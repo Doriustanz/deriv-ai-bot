@@ -1,1 +1,313 @@
-deriv-ai-bot-production.up.railway.app
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Deriv AI Bot · Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap');
+:root{
+  --bg:#04080f;--bg2:#080e1c;--bg3:#0c1525;--bg4:#101c30;
+  --border:rgba(0,210,255,0.10);--border2:rgba(0,210,255,0.22);
+  --cyan:#00d2ff;--gold:#ffc44d;--green:#00ff88;--red:#ff3d5a;
+  --text:#ddeeff;--muted:#4a6080;--radius:10px;
+  --font:'Share Tech Mono',monospace;--body:'Rajdhani',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:14px;min-height:100vh;padding:12px;}
+body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,210,255,0.012) 2px,rgba(0,210,255,0.012) 4px);
+  pointer-events:none;z-index:9999;}
+h1{font-family:var(--font);font-size:15px;letter-spacing:.12em;
+   background:linear-gradient(90deg,var(--cyan),var(--gold));
+   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.header{display:flex;justify-content:space-between;align-items:center;
+        margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border2);}
+.pill{display:flex;align-items:center;gap:6px;background:var(--bg3);
+      border:1px solid var(--border2);border-radius:20px;padding:4px 12px;font-size:11px;font-family:var(--font);}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--muted);}
+.dot.live{background:var(--green);box-shadow:0 0 8px var(--green);}
+.dot.warn{background:var(--gold);animation:blink 1s infinite;}
+.dot.err{background:var(--red);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px;margin-bottom:10px;}
+.card-title{font-family:var(--font);font-size:10px;color:var(--muted);text-transform:uppercase;
+            letter-spacing:.1em;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.ct-accent{color:var(--cyan);}
+input,select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;
+  color:var(--text);font-family:var(--font);font-size:12px;padding:8px 11px;outline:none;transition:border-color .2s;}
+input:focus,select:focus{border-color:var(--cyan);}
+label{display:block;font-size:10px;color:var(--muted);margin-bottom:4px;font-family:var(--font);}
+.row{display:flex;gap:8px;margin-top:8px;}.row>*{flex:1;}
+button{background:linear-gradient(135deg,rgba(0,210,255,.15),rgba(0,210,255,.05));
+  border:1px solid var(--cyan);color:var(--cyan);border-radius:8px;padding:10px 18px;
+  font-family:var(--body);font-size:13px;font-weight:600;cursor:pointer;width:100%;
+  margin-top:10px;letter-spacing:.05em;transition:all .2s;}
+button:hover{background:rgba(0,210,255,.2);box-shadow:0 0 12px rgba(0,210,255,.25);}
+button:active{transform:scale(.98);}
+.btn-stop{border-color:var(--red);color:var(--red);background:rgba(255,61,90,.08);}
+.btn-stop:hover{background:rgba(255,61,90,.18);}
+.btn-warn{border-color:var(--gold);color:var(--gold);background:rgba(255,196,77,.08);}
+.btn-sm{width:auto;padding:5px 12px;font-size:11px;margin:0;}
+.stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px;}
+.stat-box{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 9px;text-align:center;}
+.stat-lbl{font-family:var(--font);font-size:9px;color:var(--muted);margin-bottom:2px;}
+.stat-val{font-family:var(--font);font-size:15px;font-weight:700;}
+.scanner-head{display:grid;grid-template-columns:70px 60px 1fr 55px 40px;
+  gap:6px;font-family:var(--font);font-size:9px;color:var(--muted);
+  text-transform:uppercase;padding:0 3px;margin-bottom:5px;}
+.mkt-row{display:grid;grid-template-columns:70px 60px 1fr 55px 40px;
+  align-items:center;gap:6px;padding:6px 3px;border-radius:7px;
+  border:1px solid transparent;font-size:11px;transition:border-color .3s;}
+.mkt-row.bull-row{border-color:rgba(0,255,136,.2);background:rgba(0,255,136,.03);}
+.mkt-row.bear-row{border-color:rgba(255,61,90,.2);background:rgba(255,61,90,.03);}
+.mkt-sym{font-family:var(--font);font-size:11px;font-weight:700;}
+.score-bar{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;}
+.score-fill{height:100%;border-radius:3px;transition:width .6s,background .3s;}
+.badge{font-family:var(--font);font-size:9px;padding:2px 7px;border-radius:10px;font-weight:600;}
+.b-bull{background:rgba(0,255,136,.12);color:var(--green);}
+.b-bear{background:rgba(255,61,90,.12);color:var(--red);}
+.b-neut{background:var(--bg4);color:var(--muted);}
+.pos-row{display:grid;grid-template-columns:65px 40px 55px 50px 40px;
+  gap:5px;align-items:center;padding:6px 3px;font-size:11px;
+  border-bottom:1px solid rgba(0,210,255,.05);}
+.pos-row:last-child{border:none;}
+.pos-head{font-family:var(--font);font-size:9px;color:var(--muted);text-transform:uppercase;}
+.pos-dir.buy{color:var(--green);font-weight:700;}
+.pos-dir.sell{color:var(--red);font-weight:700;}
+.no-pos{text-align:center;color:var(--muted);font-family:var(--font);font-size:11px;padding:10px 0;}
+.log-box{max-height:200px;overflow-y:auto;font-family:var(--font);font-size:11px;}
+.log-row{display:flex;gap:7px;padding:3px 0;border-bottom:1px solid rgba(0,210,255,.04);}
+.log-t{color:var(--muted);min-width:75px;font-size:10px;}
+.c-buy{color:var(--green);}
+.c-sell{color:var(--red);}
+.c-ai{color:var(--gold);}
+.c-info{color:var(--text);}
+.c-warn{color:#ff8c42;}
+.c-win{color:var(--green);}
+.c-loss{color:var(--red);}
+.c-error{color:var(--red);}
+.uptime{font-family:var(--font);font-size:10px;color:var(--muted);text-align:center;margin-top:6px;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg2);}
+::-webkit-scrollbar-thumb{background:rgba(0,210,255,.2);border-radius:2px;}
+.risk-warn{background:rgba(255,196,77,.06);border:1px solid rgba(255,196,77,.2);
+  border-radius:8px;padding:8px 12px;font-size:10px;color:var(--gold);margin-bottom:10px;font-family:var(--font);}
+.pnl-pos{color:var(--green);}
+.pnl-neg{color:var(--red);}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>⬡ DERIV AI BOT · SERVER DASHBOARD</h1>
+    <div style="font-size:10px;color:var(--muted);margin-top:2px;font-family:var(--font);">Running 24/7 · Railway.app</div>
+  </div>
+  <div class="pill">
+    <div class="dot warn" id="dot"></div>
+    <span id="status-text">Connecting…</span>
+  </div>
+</div>
+
+<div class="risk-warn">⚠ Always test on DEMO first. CFDs are high risk. Set MAX DAILY LOSS to protect your balance.</div>
+
+<!-- SETUP -->
+<div class="card" id="setup-card">
+  <div class="card-title"><span class="ct-accent">◈</span> BOT CONFIGURATION</div>
+  <label>Deriv API Token (Read + Trade scopes)</label>
+  <input type="password" id="api-token" placeholder="Paste your Deriv API token…"/>
+  <div class="row">
+    <div><label>Stake ($)</label><input type="number" id="cfg-stake" value="1.00" min="0.35" step="0.10"/></div>
+    <div><label>Stop Loss (pips)</label><input type="number" id="cfg-sl" value="20"/></div>
+    <div><label>Take Profit (pips)</label><input type="number" id="cfg-tp" value="40"/></div>
+    <div><label>Max Daily Loss ($)</label><input type="number" id="cfg-maxloss" value="3.00" step="0.50"/></div>
+  </div>
+  <button onclick="startBot()">🚀 START BOT</button>
+</div>
+
+<!-- STATS -->
+<div class="stats-grid">
+  <div class="stat-box"><div class="stat-lbl">Balance</div><div class="stat-val" id="s-balance" style="font-size:11px">—</div></div>
+  <div class="stat-box"><div class="stat-lbl">P&amp;L Today</div><div class="stat-val" id="s-pnl">—</div></div>
+  <div class="stat-box"><div class="stat-lbl">W / L</div><div class="stat-val" id="s-wl">0/0</div></div>
+  <div class="stat-box"><div class="stat-lbl">Win Rate</div><div class="stat-val" id="s-wr">—</div></div>
+  <div class="stat-box"><div class="stat-lbl">Open</div><div class="stat-val" id="s-open">0</div></div>
+</div>
+
+<!-- MARKET SCANNER -->
+<div class="card">
+  <div class="card-title"><span class="ct-accent">◈</span> MARKET SCANNER</div>
+  <div class="scanner-head"><span>PAIR</span><span>PRICE</span><span>AI SCORE</span><span>SIGNAL</span><span>W/L</span></div>
+  <div id="scanner"></div>
+</div>
+
+<!-- OPEN POSITIONS -->
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+    <div class="card-title" style="margin:0"><span class="ct-accent">◈</span> OPEN POSITIONS</div>
+    <button class="btn-sm btn-warn" onclick="closeAll()">Close All</button>
+  </div>
+  <div class="pos-row pos-head"><span>PAIR</span><span>DIR</span><span>OPENED</span><span>PRICE</span><span>ID</span></div>
+  <div id="positions"><div class="no-pos">No open positions</div></div>
+</div>
+
+<!-- STOP -->
+<div id="stop-wrap" style="display:none;margin-bottom:10px;">
+  <button class="btn-stop" onclick="stopBot()">⏹ STOP BOT</button>
+</div>
+
+<!-- LOG -->
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+    <div class="card-title" style="margin:0"><span class="ct-accent">◈</span> LIVE TRADE LOG</div>
+    <span id="uptime-txt" style="font-family:var(--font);font-size:10px;color:var(--muted)"></span>
+  </div>
+  <div class="log-box" id="log"></div>
+</div>
+
+<div style="text-align:center;font-size:10px;color:var(--muted);margin-top:8px;font-family:var(--font);">
+  AUTO-REFRESHES EVERY 5s · DEMO FIRST · NOT FINANCIAL ADVICE
+</div>
+
+<script>
+let lastLogTs = '';
+let botRunning = false;
+
+async function api(path, method='GET', body=null) {
+  const opts = { method, headers:{'Content-Type':'application/json'} };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(path, opts);
+  return r.json();
+}
+
+async function startBot() {
+  const token  = document.getElementById('api-token').value.trim();
+  const stake  = document.getElementById('cfg-stake').value;
+  const slPips = document.getElementById('cfg-sl').value;
+  const tpPips = document.getElementById('cfg-tp').value;
+  const maxLoss= document.getElementById('cfg-maxloss').value;
+  if (!token) { alert('Enter your Deriv API token!'); return; }
+  const res = await api('/api/start','POST',{token,stake,slPips,tpPips,maxLoss});
+  if (res.ok) {
+    document.getElementById('setup-card').style.display = 'none';
+    document.getElementById('stop-wrap').style.display  = 'block';
+  }
+  alert(res.msg);
+}
+
+async function stopBot() {
+  const res = await api('/api/stop','POST');
+  document.getElementById('setup-card').style.display = 'block';
+  document.getElementById('stop-wrap').style.display  = 'none';
+  alert(res.msg);
+}
+
+async function closeAll() {
+  const res = await api('/api/close-all','POST');
+  alert(res.msg);
+}
+
+function fmtPnl(v) {
+  const n = parseFloat(v);
+  const cls = n >= 0 ? 'pnl-pos' : 'pnl-neg';
+  const sign = n >= 0 ? '+' : '';
+  return `<span class="${cls}">${sign}$${Math.abs(n).toFixed(2)}</span>`;
+}
+
+function fmtUptime(secs) {
+  const h = Math.floor(secs/3600), m = Math.floor((secs%3600)/60), s = secs%60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+async function refresh() {
+  let data;
+  try { data = await api('/api/status'); } catch(e) {
+    document.getElementById('dot').className = 'dot err';
+    document.getElementById('status-text').textContent = 'Server offline';
+    return;
+  }
+
+  botRunning = data.running;
+  document.getElementById('dot').className  = data.running ? 'dot live' : 'dot warn';
+  document.getElementById('status-text').textContent = data.running ? 'Bot Live' : 'Bot Stopped';
+
+  if (data.running) {
+    document.getElementById('setup-card').style.display = 'none';
+    document.getElementById('stop-wrap').style.display  = 'block';
+  }
+
+  // Stats
+  document.getElementById('s-balance').textContent = '$' + data.balance + ' ' + data.currency;
+  document.getElementById('s-pnl').innerHTML = fmtPnl(data.pnl);
+  document.getElementById('s-wl').textContent  = data.wins + '/' + data.losses;
+  document.getElementById('s-open').textContent = data.openCount;
+  const wr = data.winRate;
+  const wrEl = document.getElementById('s-wr');
+  wrEl.textContent = wr === '—' ? '—' : wr + '%';
+  wrEl.style.color = parseFloat(wr) >= 60 ? 'var(--green)' : parseFloat(wr) >= 40 ? 'var(--gold)' : 'var(--red)';
+
+  // Uptime
+  if (data.uptime) document.getElementById('uptime-txt').textContent = 'Uptime: ' + fmtUptime(data.uptime);
+
+  // Market scanner
+  const scanEl = document.getElementById('scanner');
+  scanEl.innerHTML = (data.markets || []).map(m => {
+    const dir = m.dir || 'NONE';
+    const rowCls = dir === 'BUY' ? 'bull-row' : dir === 'SELL' ? 'bear-row' : '';
+    const badgeCls = dir === 'BUY' ? 'b-bull' : dir === 'SELL' ? 'b-bear' : 'b-neut';
+    const barColor = dir === 'BUY' ? 'var(--green)' : dir === 'SELL' ? 'var(--red)' : 'rgba(0,210,255,0.2)';
+    const price = m.price ? parseFloat(m.price).toFixed(m.label.includes('JPY')||m.label.includes('XAU') ? (m.label.includes('XAU')?2:3) : 5) : '—';
+    return `<div class="mkt-row ${rowCls}">
+      <span class="mkt-sym">${m.label}</span>
+      <span style="font-family:var(--font);font-size:10px">${price}</span>
+      <div class="score-bar"><div class="score-fill" style="width:${m.score}%;background:${barColor}"></div></div>
+      <span class="badge ${badgeCls}">${dir === 'NONE' ? 'SCAN' : dir}</span>
+      <span style="font-family:var(--font);font-size:10px;color:var(--muted)">${m.wins}/${m.losses}</span>
+    </div>`;
+  }).join('');
+
+  // Positions
+  const posEl = document.getElementById('positions');
+  if (!data.positions || data.positions.length === 0) {
+    posEl.innerHTML = '<div class="no-pos">No open positions</div>';
+  } else {
+    posEl.innerHTML = data.positions.map(p => {
+      const t = new Date(p.openTime).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      return `<div class="pos-row">
+        <span class="mkt-sym" style="font-size:10px">${p.label||p.sym}</span>
+        <span class="pos-dir ${(p.dir||'').toLowerCase()}">${p.dir}</span>
+        <span style="font-family:var(--font);font-size:10px;color:var(--muted)">${t}</span>
+        <span style="font-family:var(--font);font-size:10px">$${parseFloat(p.openPrice||0).toFixed(2)}</span>
+        <span style="font-family:var(--font);font-size:9px;color:var(--muted)">${String(p.cid).slice(-5)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Logs — only add new entries
+  const logEl = document.getElementById('log');
+  const newLogs = (data.logs || []).filter(l => l.ts !== lastLogTs);
+  if (newLogs.length > 0) {
+    lastLogTs = data.logs[0].ts;
+    newLogs.forEach(l => {
+      const t = new Date(l.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      const cls = l.type === 'buy' ? 'c-buy' : l.type === 'sell' ? 'c-sell' :
+                  l.type === 'ai'  ? 'c-ai'  : l.type === 'win'  ? 'c-win'  :
+                  l.type === 'loss'? 'c-loss' : l.type === 'warn' ? 'c-warn' :
+                  l.type === 'error'? 'c-error': 'c-info';
+      const row = document.createElement('div');
+      row.className = 'log-row';
+      row.innerHTML = `<span class="log-t">${t}</span><span class="${cls}">${l.msg}</span>`;
+      logEl.insertBefore(row, logEl.firstChild);
+    });
+    // Keep max 100 rows in DOM
+    while (logEl.children.length > 100) logEl.removeChild(logEl.lastChild);
+  }
+}
+
+// Refresh every 5 seconds
+refresh();
+setInterval(refresh, 5000);
+</script>
+</body>
+</html>
